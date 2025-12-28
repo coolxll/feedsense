@@ -2,8 +2,8 @@ import json
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from typing import Optional
-from .config import config
-from .db import get_db
+from app.config import config
+from app.db import get_db
 
 class ReviewResult(BaseModel):
     score: int = Field(description="A score from 0 to 10 indicating how worth reading this article is.")

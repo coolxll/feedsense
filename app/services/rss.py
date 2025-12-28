@@ -1,7 +1,7 @@
 import feedparser
 import time
 from datetime import datetime
-from .db import get_db
+from app.db import get_db
 from rich.console import Console
 
 console = Console()

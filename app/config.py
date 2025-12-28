@@ -8,7 +8,8 @@ from rich.console import Console
 console = Console()
 
 # Load .env file
-env_path = Path(__file__).parent / '.env'
+# config.py is in app/ package, so .env is in the project root (.. relative to app/)
+env_path = Path(__file__).parent.parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
 else:
@@ -20,7 +21,7 @@ class Config:
     API_KEY = os.getenv("DASHSCOPE_API_KEY")
     MODEL_NAME = os.getenv("LLM_MODEL_NAME", "qwen-turbo")
     BASE_URL = os.getenv("LLM_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-    DB_PATH = Path(__file__).parent / "rss_data.db"
+    DB_PATH = Path(__file__).parent.parent / "rss_data.db"
     
     @classmethod
     def validate(cls):

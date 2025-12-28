@@ -1,10 +1,10 @@
 import typer
 from rich.console import Console
 from rich.table import Table
-from .db import init_db, get_db
-from .config import config
-from .rss_service import RSSService
-from .llm_service import LLMService
+from app.db import init_db, get_db
+from app.config import config
+from app.services.rss import RSSService
+from app.services.llm import LLMService
 
 app = typer.Typer(help="RSS Auto Read - AI Powered Feed Reader")
 console = Console()
