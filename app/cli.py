@@ -6,7 +6,7 @@ from app.config import config
 from app.services.rss import RSSService
 from app.services.llm import LLMService
 
-app = typer.Typer(help="RSS Auto Read - AI Powered Feed Reader")
+app = typer.Typer(help="FeedSense - AI Powered Feed Reader")
 console = Console()
 rss_service = RSSService()
 
