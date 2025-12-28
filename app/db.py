@@ -3,15 +3,17 @@ from pathlib import Path
 from contextlib import contextmanager
 from .config import config
 
+
 def init_db():
     """Initialize the database tables."""
     conn = sqlite3.connect(config.DB_PATH)
     c = conn.cursor()
-    
+
     # Check if tables exist, if not create them
-    
+
     # Table: Feeds
-    c.execute('''
+    c.execute(
+        """
     CREATE TABLE IF NOT EXISTS feeds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -19,13 +21,15 @@ def init_db():
         last_fetched TIMESTAMP,
         is_active BOOLEAN DEFAULT 1
     )
-    ''')
-    
+    """
+    )
+
     # Table: Articles
     # score: 0-10 integer score from LLM
     # analysis: Text reasoning from LLM
     # status: 'new', 'analyzed', 'read', 'skipped'
-    c.execute('''
+    c.execute(
+        """
     CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         feed_id INTEGER,
@@ -43,10 +47,12 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(feed_id) REFERENCES feeds(id)
     )
-    ''')
-    
+    """
+    )
+
     conn.commit()
     conn.close()
+
 
 @contextmanager
 def get_db():
@@ -57,6 +63,7 @@ def get_db():
         yield conn
     finally:
         conn.close()
+
 
 if __name__ == "__main__":
     init_db()

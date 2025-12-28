@@ -5,17 +5,22 @@ from typing import Optional
 from app.config import config
 from app.db import get_db
 
+
 class ReviewResult(BaseModel):
-    score: int = Field(description="A score from 0 to 10 indicating how worth reading this article is.")
-    reason: str = Field(description="A brief explanation (1-2 sentences) of why this score was given.")
-    category: str = Field(description="The general topic/category of the article (e.g. AI, Programming, News, Gadgets).")
+    score: int = Field(
+        description="A score from 0 to 10 indicating how worth reading this article is."
+    )
+    reason: str = Field(
+        description="A brief explanation (1-2 sentences) of why this score was given."
+    )
+    category: str = Field(
+        description="The general topic/category of the article (e.g. AI, Programming, News, Gadgets)."
+    )
+
 
 class LLMService:
     def __init__(self):
-        self.client = OpenAI(
-            api_key=config.API_KEY,
-            base_url=config.BASE_URL
-        )
+        self.client = OpenAI(api_key=config.API_KEY, base_url=config.BASE_URL)
         self.system_prompt = """
         你是一个智能助手，帮助用户筛选 RSS 订阅内容。
         用户对高质量的技术内容、AI 发展、重要科技新闻和深度教程感兴趣。
@@ -39,9 +44,11 @@ class LLMService:
         请用中文输出 reason 和 category 字段。
         """
 
-    def analyze_article(self, title: str, summary: str, link: str) -> Optional[ReviewResult]:
+    def analyze_article(
+        self, title: str, summary: str, link: str
+    ) -> Optional[ReviewResult]:
         content_preview = summary[:1000] if summary else "No summary provided."
-        
+
         user_prompt = f"""
         Article Title: {title}
         Link: {link}
@@ -49,21 +56,21 @@ class LLMService:
         
         Analyze this article.
         """
-        
+
         try:
             response = self.client.chat.completions.create(
                 model=config.MODEL_NAME,
                 messages=[
-                    {'role': 'system', 'content': self.system_prompt},
-                    {'role': 'user', 'content': user_prompt}
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": user_prompt},
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
-            
+
             content = response.choices[0].message.content
             data = json.loads(content)
             return ReviewResult(**data)
-            
+
         except Exception as e:
             # Fallback or error logging
             print(f"Error analyzing article '{title}': {e}")
@@ -73,28 +80,38 @@ class LLMService:
         """Analyzes pending 'new' articles."""
         with get_db() as conn:
             # Fetch articles that are 'new'
-            cursor = conn.execute("SELECT * FROM articles WHERE status='new' LIMIT ?", (limit,))
+            cursor = conn.execute(
+                "SELECT * FROM articles WHERE status='new' LIMIT ?", (limit,)
+            )
             articles = cursor.fetchall()
-            
+
         analyzed_count = 0
         for article in articles:
             print(f"Analyzing: {article['title']}...")
-            result = self.analyze_article(article['title'], article['summary'], article['link'])
-            
+            result = self.analyze_article(
+                article["title"], article["summary"], article["link"]
+            )
+
             if result:
                 with get_db() as conn:
-                    conn.execute('''
+                    conn.execute(
+                        """
                         UPDATE articles 
                         SET status='analyzed', score=?, analysis=?, category=?
                         WHERE id=?
-                    ''', (result.score, result.reason, result.category, article['id']))
+                    """,
+                        (result.score, result.reason, result.category, article["id"]),
+                    )
                     conn.commit()
                 analyzed_count += 1
             else:
                 # Mark as skipped or try again later?
                 # For now, mark as skipped to avoid infinite error loops
-                 with get_db() as conn:
-                    conn.execute("UPDATE articles SET status='error' WHERE id=?", (article['id'],))
+                with get_db() as conn:
+                    conn.execute(
+                        "UPDATE articles SET status='error' WHERE id=?",
+                        (article["id"],),
+                    )
                     conn.commit()
-                    
+
         return analyzed_count
