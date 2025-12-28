@@ -190,6 +190,34 @@ python manage.py analyze --limit 10
 python manage.py report --score-min 7
 ```
 
+## 🧪 Testing
+
+### Run Tests
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_rss_service.py -v
+```
+
+### Test Coverage
+
+The project includes unit tests for:
+- ✅ Configuration management
+- ✅ Database operations
+- ✅ RSS feed fetching and parsing
+- ✅ LLM service integration
+
+Current coverage: ~60%
+
 ## 🤝 Contributing
 
 Issues and Pull Requests are welcome!

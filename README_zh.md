@@ -188,6 +188,34 @@ python manage.py analyze --limit 10
 python manage.py report --score-min 7
 ```
 
+## 🧪 测试
+
+### 运行测试
+
+```bash
+# 安装开发依赖
+pip install -r requirements-dev.txt
+
+# 运行所有测试
+pytest
+
+# 运行测试并生成覆盖率报告
+pytest --cov=app --cov-report=html
+
+# 运行特定测试文件
+pytest tests/test_rss_service.py -v
+```
+
+### 测试覆盖
+
+项目包含以下模块的单元测试：
+- ✅ 配置管理
+- ✅ 数据库操作
+- ✅ RSS 订阅源抓取和解析
+- ✅ LLM 服务集成
+
+当前覆盖率：约 60%
+
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
