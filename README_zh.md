@@ -1,5 +1,9 @@
 # FeedSense
 
+[![Tests](https://github.com/coolxll/feedsense/actions/workflows/tests.yml/badge.svg)](https://github.com/coolxll/feedsense/actions/workflows/tests.yml)
+[![Lint](https://github.com/coolxll/feedsense/actions/workflows/lint.yml/badge.svg)](https://github.com/coolxll/feedsense/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/coolxll/feedsense/branch/main/graph/badge.svg)](https://codecov.io/gh/coolxll/feedsense)
+
 基于 AI 的智能 RSS 阅读器，使用 **通义千问 (Qwen)** 自动分析和筛选值得阅读的文章。
 
 ## ✨ 特性
