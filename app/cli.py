@@ -69,25 +69,117 @@ def report(top: int = 20, score_min: int = 0):
         """
         rows = conn.execute(query, (score_min, top)).fetchall()
 
-    table = Table(title=f"Top Articles (Min Score: {score_min})")
-    table.add_column("Score", style="bold yellow", justify="right")
-    table.add_column("Title", style="bold white")
-    table.add_column("Category", style="cyan")
-    table.add_column("AI Reason", style="dim")
+    if not rows:
+        console.print(f"[yellow]No articles found with score >= {score_min}[/yellow]")
+        return
 
-    for row in rows:
-        color = (
-            "green" if row["score"] >= 8 else "yellow" if row["score"] >= 5 else "white"
-        )
-        score_str = f"[{color}]{row['score']}[/{color}]"
-        table.add_row(
-            score_str,
-            str(row["title"]),
-            str(row["category"] or ""),
-            str(row["analysis"] or ""),
-        )
+    console.print(f"\n[bold cyan]📰 Top Articles (Min Score: {score_min})[/bold cyan]\n")
+    
+    for i, row in enumerate(rows, 1):
+        score = row["score"]
+        color = "green" if score >= 8 else "yellow" if score >= 5 else "white"
+        
+        console.print(f"[bold]{i}. [{color}]★ {score}[/{color}][/bold] {row['title']}")
+        console.print(f"   [cyan]分类:[/cyan] {row['category'] or 'N/A'}")
+        console.print(f"   [dim]理由:[/dim] {row['analysis'] or 'N/A'}")
+        console.print(f"   [blue underline]🔗 {row['link']}[/blue underline]")
+        console.print()
+    
+    console.print(f"[dim]Total: {len(rows)} articles[/dim]\n")
 
-    console.print(table)
+
+@app.command()
+def daily(date: str = None, score_min: int = 5):
+    """Show articles from a specific date (YYYY-MM-DD). Defaults to today."""
+    from datetime import datetime, timedelta
+
+    if date is None:
+        target_date = datetime.now().date()
+    else:
+        try:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            console.print(
+                "[red]Error:[/red] Invalid date format. Use YYYY-MM-DD (e.g., 2025-12-28)"
+            )
+            return
+
+    # Calculate date range (whole day)
+    start_datetime = datetime.combine(target_date, datetime.min.time())
+    end_datetime = start_datetime + timedelta(days=1)
+
+    with get_db() as conn:
+        query = """
+            SELECT a.title, a.score, a.category, a.analysis, a.link, a.published, f.name as feed_name
+            FROM articles a
+            JOIN feeds f ON a.feed_id = f.id
+            WHERE a.status = 'analyzed' 
+                AND a.score >= ?
+                AND a.published >= ? 
+                AND a.published < ?
+            ORDER BY a.score DESC, a.published DESC
+        """
+        rows = conn.execute(
+            query, (score_min, start_datetime, end_datetime)
+        ).fetchall()
+
+    if not rows:
+        console.print(
+            f"[yellow]No articles found for {target_date} with score >= {score_min}[/yellow]"
+        )
+        return
+
+    console.print(f"\n[bold cyan]📅 Daily Digest: {target_date} (Min Score: {score_min})[/bold cyan]\n")
+    
+    for i, row in enumerate(rows, 1):
+        score = row["score"]
+        color = "green" if score >= 8 else "yellow" if score >= 5 else "white"
+        
+        console.print(f"[bold]{i}. [{color}]★ {score}[/{color}][/bold] {row['title']}")
+        console.print(f"   [cyan]分类:[/cyan] {row['category'] or 'N/A'} | [dim]来源:[/dim] {row['feed_name']}")
+        console.print(f"   [dim]理由:[/dim] {row['analysis'] or 'N/A'}")
+        console.print(f"   [blue underline]🔗 {row['link']}[/blue underline]")
+        console.print()
+
+    console.print(f"[dim]Total: {len(rows)} articles[/dim]\n")
+
+
+@app.command()
+def stats():
+    """Show statistics about feeds and articles."""
+    with get_db() as conn:
+        # Feed stats
+        feed_count = conn.execute("SELECT COUNT(*) FROM feeds WHERE is_active=1").fetchone()[0]
+        
+        # Article stats
+        total_articles = conn.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
+        analyzed = conn.execute("SELECT COUNT(*) FROM articles WHERE status='analyzed'").fetchone()[0]
+        pending = conn.execute("SELECT COUNT(*) FROM articles WHERE status='new'").fetchone()[0]
+        
+        # Score distribution
+        high_score = conn.execute("SELECT COUNT(*) FROM articles WHERE score >= 7").fetchone()[0]
+        mid_score = conn.execute("SELECT COUNT(*) FROM articles WHERE score >= 4 AND score < 7").fetchone()[0]
+        low_score = conn.execute("SELECT COUNT(*) FROM articles WHERE score < 4 AND score > 0").fetchone()[0]
+        
+        # Today's articles
+        from datetime import datetime, timedelta
+        today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_count = conn.execute(
+            "SELECT COUNT(*) FROM articles WHERE published >= ?", (today_start,)
+        ).fetchone()[0]
+
+    console.print("\n[bold cyan]📊 FeedSense Statistics[/bold cyan]\n")
+    
+    console.print(f"[bold]Feeds:[/bold] {feed_count} active")
+    console.print(f"[bold]Articles:[/bold] {total_articles} total")
+    console.print(f"  ├─ ✅ Analyzed: {analyzed}")
+    console.print(f"  ├─ ⏳ Pending: {pending}")
+    console.print(f"  └─ 📅 Today: {today_count}\n")
+    
+    console.print(f"[bold]Quality Distribution:[/bold]")
+    console.print(f"  ├─ [green]High (7-10):[/green] {high_score}")
+    console.print(f"  ├─ [yellow]Medium (4-6):[/yellow] {mid_score}")
+    console.print(f"  └─ [dim]Low (0-3):[/dim] {low_score}\n")
 
 
 if __name__ == "__main__":
