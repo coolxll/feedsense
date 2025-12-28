@@ -72,7 +72,7 @@ def report(top: int = 20, score_min: int = 0):
     for row in rows:
         color = "green" if row['score'] >= 8 else "yellow" if row['score'] >= 5 else "white"
         score_str = f"[{color}]{row['score']}[/{color}]"
-        table.add_row(score_str, row['title'], row['category'], row['analysis'])
+        table.add_row(score_str, str(row['title']), str(row['category'] or ''), str(row['analysis'] or ''))
     
     console.print(table)
 

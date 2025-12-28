@@ -17,24 +17,26 @@ class LLMService:
             base_url=config.BASE_URL
         )
         self.system_prompt = """
-        You are an intelligent assistant helping a user filter RSS feeds.
-        The user is interested in high-quality technical content, AI developments, significant tech news, and insightful tutorials.
+        你是一个智能助手，帮助用户筛选 RSS 订阅内容。
+        用户对高质量的技术内容、AI 发展、重要科技新闻和深度教程感兴趣。
         
-        Analyze the provided article metadata (Title, Summary). 
-        You must ignore marketing fluff, generic press releases, and low-value content.
+        分析提供的文章元数据（标题、摘要）。
+        你必须忽略营销软文、泛泛的新闻稿和低价值内容。
         
-        Return your analysis in valid JSON format matching the schema:
+        以有效的 JSON 格式返回你的分析，格式如下：
         {
             "score": <0-10>,
-            "reason": "<short justification>",
-            "category": "<category>"
+            "reason": "<简短理由，用中文>",
+            "category": "<分类，用中文>"
         }
         
-        Scoring Guide:
-        - 0-3: Marketing, duplicate news, irrelevant.
-        - 4-6: General news, interesting but not critical.
-        - 7-8: Good tutorial, major release, insightful opinion.
-        - 9-10: Groundbreaking news, deep technical dive, must-read.
+        评分指南：
+        - 0-3: 营销内容、重复新闻、不相关。
+        - 4-6: 一般新闻，有趣但不重要。
+        - 7-8: 优质教程、重大发布、有见地的观点。
+        - 9-10: 突破性新闻、深度技术分析、必读内容。
+        
+        请用中文输出 reason 和 category 字段。
         """
 
     def analyze_article(self, title: str, summary: str, link: str) -> Optional[ReviewResult]:
